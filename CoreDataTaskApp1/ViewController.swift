@@ -8,21 +8,31 @@
 import UIKit
 
 protocol TaskListViewable: AnyObject {
-    func updateView()
+    func dataDidUpdate()
+    func onAddButtonClicked()
 }
 
-class ViewController: UIViewController {
+final class ViewController: UIViewController {
     private var tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     } ()
     
+    private var addButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    private var tapGestureRecognizer: UITapGestureRecognizer?
+    
     private var viewModel: TaskListViewModelable?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
+        setupAddButton()
         viewModel?.performAction(.viewLoaded)
     }
     
@@ -33,15 +43,34 @@ class ViewController: UIViewController {
         tableView.register(TaskListCell.self, forCellReuseIdentifier: TaskListCell.reuseIdentifier)
     }
     
+    private func setupAddButton() {
+        view.addSubview(addButton)
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapAddButton))
+        addButton.setTitle("Add Task", for: .normal)
+        addButton.addGestureRecognizer(tapGestureRecognizer)
+        self.tapGestureRecognizer = tapGestureRecognizer
+        layoutAddButton()
+    }
+    
     private func layoutTableView() {
         var constraints: [NSLayoutConstraint] = []
-        constraints.append(tableView.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 1))
         constraints.append(tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0))
         constraints.append(tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: 0))
-        constraints.append(tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0))
         constraints.append(tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0))
         constraints.append(tableView.widthAnchor.constraint(equalTo: view.safeAreaLayoutGuide.widthAnchor, multiplier: 1))
         constraints.forEach{$0.isActive = true}
+    }
+    
+    private func layoutAddButton() {
+        addButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0).isActive = true
+        addButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: 0).isActive = true
+        addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0).isActive = true
+        addButton.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 0).isActive = true
+    }
+    
+    @objc
+    private func didTapAddButton() {
+        viewModel?.performAction(.addButtonClicked)
     }
     
     func build(with viewModel: TaskListViewModelable) {
@@ -66,7 +95,21 @@ extension ViewController: UITableViewDataSource {
 }
 
 extension ViewController: TaskListViewable {
-    func updateView() {
+    func onAddButtonClicked() {
+        let alert = UIAlertController(title: "Add New Task", message: "", preferredStyle: .alert)
+        alert.addTextField()
+        let addAction = UIAlertAction(title: "Add", style: .default) {[weak alert, weak self] action in
+            guard let self, let alert, let textField = alert.textFields?.first else { return }
+            debugPrint("Inside Alert Action")
+            self.viewModel?.performAction(.addTask(textField.text))
+        }
+        
+        alert.addAction(addAction)
+        
+        present(alert, animated: true)
+    }
+    
+    func dataDidUpdate() {
         tableView.reloadData()
     }
 }

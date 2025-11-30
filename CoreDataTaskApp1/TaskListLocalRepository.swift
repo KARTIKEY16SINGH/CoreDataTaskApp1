@@ -9,6 +9,7 @@ internal import CoreData
 
 protocol TaskListBaseRepository {
     func getTask() -> TaskListModel?
+    func addTask(task: TaskListInfoModel)
 }
 
 struct TaskListLocalRepository: TaskListBaseRepository {
@@ -31,5 +32,13 @@ struct TaskListLocalRepository: TaskListBaseRepository {
             debugPrint(error)
         }
         return nil
+    }
+    
+    func addTask(task: TaskListInfoModel) {
+        let newTask = CDTask(context: persistentStorage.context)
+        newTask.id = task.id
+        newTask.title = task.title
+        
+        persistentStorage.saveContext()
     }
 }

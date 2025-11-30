@@ -13,6 +13,9 @@ enum TaskListStateStatus {
     case dataReceived
     case dataLoading
     case dataError
+    case clickedAddButton
+    case addNewTask(String)
+    case taskCreated
 }
 
 protocol TaskListStateReduceable {
@@ -30,6 +33,16 @@ struct TaskListStateReducer: TaskListStateReduceable {
             state.status = .dataReceived
         case .dataError:
             state.status = .dataError
+        case .addButtonClicked:
+            state.status = .clickedAddButton
+        case .addTask(let optionalText):
+            guard let text = optionalText else {
+                state.status = .unknown
+                break
+            }
+            state.status = .addNewTask(text)
+        case .newTaskCreated:
+            state.status = .taskCreated
         }
         return state
     }

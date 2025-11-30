@@ -28,7 +28,7 @@ final class TaskListViewModel {
     
     private func handleStateUpdate() {
         switch state.status {
-        case .viewLoaded:
+        case .viewLoaded, .taskCreated:
             guard let data = repository.getTask() else {
                 performAction(.dataError)
                 return
@@ -36,7 +36,7 @@ final class TaskListViewModel {
             state.dataSource = data
             performAction(.dataReceived)
         case .dataReceived:
-            view?.updateView()
+            view?.dataDidUpdate()
         case .dataError:
             var taskList = [TaskListInfoModel]()
             for task in 1...3 {
@@ -45,6 +45,12 @@ final class TaskListViewModel {
             }
             state.dataSource = TaskListModel(tasks: taskList)
             performAction(.dataReceived)
+        case .clickedAddButton:
+            view?.onAddButtonClicked()
+        case .addNewTask(let text):
+            let task = TaskListInfoModel(id: UUID(), title: text)
+            repository.addTask(task: task)
+            performAction(.newTaskCreated)
         default:
             break
         }
@@ -74,5 +80,8 @@ enum TaskListActions {
     case viewLoaded
     case dataReceived
     case dataError
+    case addButtonClicked
+    case addTask(String?)
+    case newTaskCreated
 }
 
