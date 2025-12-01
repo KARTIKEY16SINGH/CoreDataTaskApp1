@@ -16,6 +16,7 @@ enum TaskListStateStatus {
     case clickedAddButton
     case addNewTask(String)
     case taskCreated
+    case deleteRow(Int)
 }
 
 protocol TaskListStateReduceable {
@@ -43,6 +44,8 @@ struct TaskListStateReducer: TaskListStateReduceable {
             state.status = .addNewTask(text)
         case .newTaskCreated:
             state.status = .taskCreated
+        case .delete(row: let row):
+            state.status = .deleteRow(row)
         }
         return state
     }

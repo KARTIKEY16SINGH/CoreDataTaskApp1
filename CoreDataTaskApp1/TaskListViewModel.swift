@@ -51,6 +51,13 @@ final class TaskListViewModel {
             let task = TaskListInfoModel(id: UUID(), title: text)
             repository.addTask(task: task)
             performAction(.newTaskCreated)
+        case .deleteRow(let rowIndex):
+            guard let items = state.dataSource?.tasks, rowIndex >= 0 && rowIndex < items.count else { return }
+            repository.deleteTask(with: items[rowIndex].id)
+            var tasks = items
+            tasks.remove(at: rowIndex)
+            state.dataSource = .init(tasks: tasks)
+            view?.deletedRow(at: rowIndex)
         default:
             break
         }
@@ -83,5 +90,6 @@ enum TaskListActions {
     case addButtonClicked
     case addTask(String?)
     case newTaskCreated
+    case delete(row:Int)
 }
 

@@ -11,7 +11,7 @@ struct TaskListBuilder {
     func build()  -> UIViewController {
         let repository = TaskListLocalRepository(persistentStorage: PersistentStorage.shared)
         let viewModel = TaskListViewModel(reducer: TaskListStateReducer(), repository: repository)
-        let viewController = ViewController()
+        let viewController = TaskListViewController()
         viewController.build(with: viewModel)
         return viewController
     }
